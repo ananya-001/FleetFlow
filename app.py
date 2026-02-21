@@ -1,73 +1,47 @@
 from flask import Flask, render_template, request, redirect, url_for
-from db import get_connection  # Your db.py file
 
 app = Flask(__name__)
 
 # ---------------------------------------------------------
-# ROUTE 1: SHOW LOGIN SCREEN
+# ROUTE 1: Show Login Page
 # ---------------------------------------------------------
 @app.route('/')
 def home():
-    return render_template('login.html')
+    return render_template('login.html')  # Make sure this file is inside templates/
 
 # ---------------------------------------------------------
-# ROUTE 2: PROCESS LOGIN FORM
+# ROUTE 2: Process Login Form
 # ---------------------------------------------------------
 @app.route('/login', methods=['POST'])
 def login():
     user_email = request.form.get('email')
     user_password = request.form.get('password')
 
-    # Connect to the database
-    conn = get_connection()
-    conn.execute("PRAGMA foreign_keys = ON;")
-    cur = conn.cursor()
+    # Hardcoded users (demo)
+    if user_email == "manager@fleetflow.com" and user_password == "admin123":
+        return redirect(url_for('dashboard'))
 
-    # Check if the user exists in a hypothetical 'users' table
-    cur.execute("SELECT role FROM users WHERE email=? AND password=?", (user_email, user_password))
-    result = cur.fetchone()
-    conn.close()
+    elif user_email == "dispatch@fleetflow.com" and user_password == "dispatch123":
+        # Redirect dispatcher to a page later; for now just show a message
+        return "Success! Welcome Dispatcher. You have access to Trip Management."
 
-    if result:
-        role = result[0]
-        if role == "manager":
-            return redirect(url_for('dashboard'))
-        elif role == "dispatcher":
-            return "Success! Welcome Dispatcher. You have access to Trip Management."
     else:
         return "Error: Wrong email or password! Please go back and try again."
 
 # ---------------------------------------------------------
-# ROUTE 3: DASHBOARD
+# ROUTE 3: Dashboard Page
 # ---------------------------------------------------------
 @app.route('/dashboard')
 def dashboard():
-    conn = get_connection()
-    conn.execute("PRAGMA foreign_keys = ON;")
-    cur = conn.cursor()
-
-    # Count vehicles, drivers, and maintenance alerts from DB
-    cur.execute("SELECT COUNT(*) FROM vehicles")
-    total_vehicles = cur.fetchone()[0]
-
-    cur.execute("SELECT COUNT(*) FROM drivers")
-    total_drivers = cur.fetchone()[0]
-
-    cur.execute("SELECT COUNT(*) FROM vehicles WHERE status='maintenance'")
-    maintenance_alerts = cur.fetchone()[0]
-
-    conn.close()
-
     stats = {
-        "total_vehicles": total_vehicles,
-        "total_drivers": total_drivers,
-        "maintenance_alerts": maintenance_alerts
+        "total_vehicles": 25,
+        "total_drivers": 18,
+        "maintenance_alerts": 3
     }
-
     return render_template('dashboard.html', data=stats)
 
 # ---------------------------------------------------------
-# ROUTE 4: ADD VEHICLE
+# ROUTE 4: Add Vehicle Page
 # ---------------------------------------------------------
 @app.route('/add_vehicle', methods=['GET', 'POST'])
 def add_vehicle():
@@ -76,23 +50,17 @@ def add_vehicle():
         v_plate = request.form.get('license_plate')
         v_capacity = request.form.get('capacity')
 
-        # Insert new vehicle into database
-        conn = get_connection()
-        conn.execute("PRAGMA foreign_keys = ON;")
-        cur = conn.cursor()
-        cur.execute(
-            "INSERT INTO vehicles (model_name, license_plate, max_load_kg) VALUES (?, ?, ?)",
-            (v_name, v_plate, v_capacity)
-        )
-        conn.commit()
-        conn.close()
+        # Temporary: just print to terminal
+        print(f"SUCCESS: Caught new vehicle! Name: {v_name}, Plate: {v_plate}, Capacity: {v_capacity}")
 
+        # Redirect back to dashboard after submission
         return redirect(url_for('dashboard'))
 
+    # GET request: show the add vehicle form
     return render_template('add_vehicle.html')
 
 # ---------------------------------------------------------
-# START THE SERVER
+# Run the Flask App
 # ---------------------------------------------------------
 if __name__ == '__main__':
     app.run(debug=True)
