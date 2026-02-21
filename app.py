@@ -1,42 +1,36 @@
 from flask import Flask, render_template, request, redirect, url_for
 
-
 app = Flask(__name__)
 
 # ---------------------------------------------------------
-# ROUTE 1:(Showing the Login Screen)
+# ROUTE 1: Show Login Page
 # ---------------------------------------------------------
 @app.route('/')
 def home():
-    # This tells Flask to look inside the 'templates' folder for Akriti's file
-    return render_template('login.html') 
+    return render_template('login.html')  # Make sure this file is inside templates/
 
 # ---------------------------------------------------------
-# ROUTE 2: (Processing the Login Form)
+# ROUTE 2: Process Login Form
 # ---------------------------------------------------------
 @app.route('/login', methods=['POST'])
 def login():
-    # 1. Grab the exact text the user typed into Akriti's form
     user_email = request.form.get('email')
     user_password = request.form.get('password')
-    
-    # 2. ROLE-BASED ACCESS CONTROL (RBAC) LOGIC
-    # Since Ananya hasn't built the database yet, we will use hardcoded users for now.
-    
-    # Check if it is a Manager
+
+    # Hardcoded users (demo)
     if user_email == "manager@fleetflow.com" and user_password == "admin123":
-        # Later, we will redirect them to the Command Center dashboard
         return redirect(url_for('dashboard'))
-        
-    # Check if it is a Dispatcher
+
     elif user_email == "dispatch@fleetflow.com" and user_password == "dispatch123":
-        # Later, we will redirect them to the Trip Dispatcher page
+        # Redirect dispatcher to a page later; for now just show a message
         return "Success! Welcome Dispatcher. You have access to Trip Management."
-        
-    # If the email/password doesn't match either of the above
+
     else:
         return "Error: Wrong email or password! Please go back and try again."
-    
+
+# ---------------------------------------------------------
+# ROUTE 3: Dashboard Page
+# ---------------------------------------------------------
 @app.route('/dashboard')
 def dashboard():
     stats = {
@@ -47,30 +41,26 @@ def dashboard():
     return render_template('dashboard.html', data=stats)
 
 # ---------------------------------------------------------
-# ROUTE 4: VEHICLE REGISTRY (Adding a new vehicle)
+# ROUTE 4: Add Vehicle Page
 # ---------------------------------------------------------
-# Notice we added 'GET' here so it can both show the page AND receive the data!
 @app.route('/add_vehicle', methods=['GET', 'POST'])
 def add_vehicle():
-    
-    # If the user clicked the "Submit" button on Akriti's form...
     if request.method == 'POST':
-        # Grab the details they typed in
         v_name = request.form.get('vehicle_name')
         v_plate = request.form.get('license_plate')
         v_capacity = request.form.get('capacity')
-        
-        # NOTE: For right now, we will just print it to your VS Code terminal.
-        # Once Ananya finishes her code, we will replace this print statement 
-        # with her database saving function!
+
+        # Temporary: just print to terminal
         print(f"SUCCESS: Caught new vehicle! Name: {v_name}, Plate: {v_plate}, Capacity: {v_capacity}")
-        
-        # Send the user back to the Command Center after adding the vehicle
-        return url_for('dashboard')
-        
-    # If the user is just visiting the page for the first time, show Akriti's blank form
+
+        # Redirect back to dashboard after submission
+        return redirect(url_for('dashboard'))
+
+    # GET request: show the add vehicle form
     return render_template('add_vehicle.html')
 
-# Start the server
+# ---------------------------------------------------------
+# Run the Flask App
+# ---------------------------------------------------------
 if __name__ == '__main__':
     app.run(debug=True)
