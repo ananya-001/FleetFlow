@@ -25,7 +25,7 @@ def login():
     # Check if it is a Manager
     if user_email == "manager@fleetflow.com" and user_password == "admin123":
         # Later, we will redirect them to the Command Center dashboard
-        return "Success! Welcome Manager. You have access to the Command Center."
+        return redirect(url_for('dashboard'))
         
     # Check if it is a Dispatcher
     elif user_email == "dispatch@fleetflow.com" and user_password == "dispatch123":
@@ -35,13 +35,15 @@ def login():
     # If the email/password doesn't match either of the above
     else:
         return "Error: Wrong email or password! Please go back and try again."
-# ---------------------------------------------------------
-# ROUTE 3: THE COMMAND CENTER (Main Dashboard)
-# ---------------------------------------------------------
+    
 @app.route('/dashboard')
 def dashboard():
-    # Right now this is just text, but later Akriti will build a dashboard.html for this!
-    return "Welcome to the Command Center Dashboard! Active Fleet: 0"
+    stats = {
+        "total_vehicles": 25,
+        "total_drivers": 18,
+        "maintenance_alerts": 3
+    }
+    return render_template('dashboard.html', data=stats)
 
 # Start the server
 if __name__ == '__main__':
