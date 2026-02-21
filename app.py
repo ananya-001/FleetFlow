@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 
+
 app = Flask(__name__)
 
 # ---------------------------------------------------------
@@ -65,7 +66,7 @@ def add_vehicle():
         print(f"SUCCESS: Caught new vehicle! Name: {v_name}, Plate: {v_plate}, Capacity: {v_capacity}")
         
         # Send the user back to the Command Center after adding the vehicle
-        return redirect(url_for('dashboard'))
+        return url_for('dashboard')
         
     # If the user is just visiting the page for the first time, show Akriti's blank form
     return render_template('add_vehicle.html')
