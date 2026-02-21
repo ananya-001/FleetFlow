@@ -1,5 +1,9 @@
 import sqlite3
 
+def get_connection():
+    # This line is what actually connects the code to the .db file
+    return sqlite3.connect('fleetflow.db')
+
 # 1. Create / open database file
 conn = sqlite3.connect("fleetflow.db")
 
