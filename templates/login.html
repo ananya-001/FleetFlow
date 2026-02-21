@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fleet Management System — Admin Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep:    #050c18;
+      --bg-mid:     #091528;
+      --accent:     #00c8ff;
+      --accent-dim: #0099cc;
+      --accent-glow:#00c8ff33;
+      --panel:      #0d1e35;
+      --panel-edge: #142844;
+      --text-hi:    #e8f4ff;
+      --text-mid:   #7fa8cc;
+      --text-lo:    #3a5c7a;
+      --danger:     #ff4d6d;
+      --card-w:     440px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-hi);
+      overflow-x: hidden;
+    }
+
+    /* ── animated mesh background ── */
+    .bg {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 50%, #00345566 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 85% 20%, #003c5540 0%, transparent 55%),
+        radial-gradient(ellipse 50% 50% at 50% 85%, #001a2e 0%, transparent 70%),
+        linear-gradient(160deg, #071422 0%, #050c18 50%, #081a2e 100%);
+      animation: bgPulse 12s ease-in-out infinite alternate;
+    }
+    @keyframes bgPulse {
+      0%   { filter: brightness(1); }
+      100% { filter: brightness(1.08); }
+    }
+
+    /* grid lines */
+    .bg::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,200,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,200,255,.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+    }
+
+    /* moving glow orb */
+    .orb {
+      position: fixed;
+      width: 480px; height: 480px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #00c8ff18 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: orbDrift 8s ease-in-out infinite alternate;
+      filter: blur(40px);
+    }
+    @keyframes orbDrift {
+      0%   { transform: translate(-60%, -50%) scale(1); }
+      100% { transform: translate(-40%, -52%) scale(1.15); }
+    }
+
+    /* ── layout ── */
+    .page {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr var(--card-w) 1fr;
+      grid-template-rows: 1fr;
+    }
+
+    /* left info panel */
+    .side {
+      grid-column: 1;
+      display: flex; flex-direction: column;
+      justify-content: center;
+      padding: 60px 48px 60px 64px;
+      border-right: 1px solid var(--panel-edge);
+      background: rgba(5, 15, 30, .55);
+      backdrop-filter: blur(12px);
+      animation: fadeInLeft .9s ease both;
+    }
+    @keyframes fadeInLeft {
+      from { opacity: 0; transform: translateX(-30px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .side-logo {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 56px;
+    }
+    .side-logo svg { flex-shrink: 0; }
+    .side-logo-text { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); }
+
+    .side-stat {
+      display: flex; flex-direction: column; gap: 36px;
+    }
+    .stat-item { display: flex; flex-direction: column; gap: 4px; }
+    .stat-num {
+      font-family: 'Syne', sans-serif; font-size: 42px; font-weight: 800;
+      color: var(--text-hi); line-height: 1;
+      background: linear-gradient(135deg, #e8f4ff 30%, var(--accent));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    }
+    .stat-label { font-size: 12px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--text-mid); }
+
+    .side-divider { width: 40px; height: 2px; background: var(--accent); border-radius: 2px; margin: 40px 0; }
+
+    .side-tagline {
+      font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 600;
+      color: var(--text-mid); line-height: 1.6; max-width: 260px;
+    }
+    .side-tagline strong { color: var(--text-hi); }
+
+    /* center card */
+    .center {
+      grid-column: 2;
+      display: flex; align-items: center; justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .card {
+      width: 100%; max-width: var(--card-w);
+      background: linear-gradient(160deg, rgba(13,30,53,.9) 0%, rgba(9,21,40,.95) 100%);
+      border: 1px solid var(--panel-edge);
+      border-radius: 20px;
+      box-shadow:
+        0 0 0 1px rgba(0,200,255,.06),
+        0 32px 64px rgba(0,0,0,.6),
+        0 0 80px rgba(0,200,255,.06);
+      padding: 52px 48px 44px;
+      backdrop-filter: blur(24px);
+      animation: cardIn .9s cubic-bezier(.22,1,.36,1) .1s both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(28px) scale(.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* badge */
+    .badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(0,200,255,.08);
+      border: 1px solid rgba(0,200,255,.2);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 28px;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: blink 2s ease infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px; font-weight: 800; line-height: 1.15;
+      color: var(--text-hi);
+      margin-bottom: 6px;
+      letter-spacing: -.02em;
+    }
+
+    .card-subtitle {
+      font-size: 14px; color: var(--text-mid); margin-bottom: 36px;
+    }
+
+    /* divider */
+    .card-sep {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--panel-edge), transparent);
+      margin-bottom: 36px;
+    }
+
+    /* fields */
+    .field { margin-bottom: 20px; }
+    .field label {
+      display: block;
+      font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--text-mid);
+      margin-bottom: 8px;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex; align-items: center;
+    }
+    .input-wrap svg {
+      position: absolute; left: 16px;
+      color: var(--text-lo);
+      pointer-events: none;
+      transition: color .2s;
+    }
+
+    .input-wrap input {
+      width: 100%;
+      background: rgba(5,14,28,.8);
+      border: 1px solid var(--panel-edge);
+      border-radius: 10px;
+      padding: 14px 16px 14px 46px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; color: var(--text-hi);
+      outline: none;
+      transition: border-color .25s, box-shadow .25s;
+      -webkit-text-fill-color: var(--text-hi);
+    }
+    .input-wrap input::placeholder { color: var(--text-lo); }
+    .input-wrap input:focus {
+      border-color: var(--accent-dim);
+      box-shadow: 0 0 0 3px var(--accent-glow), inset 0 1px 0 rgba(0,200,255,.05);
+    }
+    .input-wrap input:focus + svg,
+    .input-wrap:has(input:focus) svg { color: var(--accent); }
+    .input-wrap:has(input:focus) svg { left: 16px; }
+
+    /* re-order so svg comes before input in DOM but absolutely positioned */
+    .input-icon { order: -1; }
+
+    /* login btn */
+    .btn-login {
+      width: 100%; margin-top: 28px;
+      padding: 15px;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--bg-deep);
+      background: linear-gradient(135deg, var(--accent) 0%, #0099ee 100%);
+      border: none; border-radius: 10px;
+      cursor: pointer;
+      position: relative; overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,200,255,.3);
+      transition: transform .18s, box-shadow .18s, filter .18s;
+    }
+    .btn-login::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.18) 0%, transparent 60%);
+      opacity: 0; transition: opacity .2s;
+    }
+    .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,200,255,.45); filter: brightness(1.05); }
+    .btn-login:hover::before { opacity: 1; }
+    .btn-login:active { transform: translateY(0); }
+
+    /* forgot */
+    .forgot-wrap { text-align: center; margin-top: 20px; }
+    .forgot-wrap a {
+      font-size: 13px; color: var(--text-mid);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .forgot-wrap a:hover { color: var(--accent); }
+
+    /* footer */
+    .card-footer {
+      margin-top: 44px; padding-top: 20px;
+      border-top: 1px solid var(--panel-edge);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-footer-text { font-size: 11px; color: var(--text-lo); letter-spacing: .06em; }
+    .card-footer-status {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: #3ddc84; letter-spacing: .06em;
+    }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #3ddc84; animation: blink 3s ease infinite; }
+
+    /* right panel (filler) */
+    .right {
+      grid-column: 3;
+      display: flex; flex-direction: column;
+      justify-content: flex-end; align-items: flex-end;
+      padding: 40px 48px;
+      animation: fadeInRight .9s ease both;
+    }
+    @keyframes fadeInRight {
+      from { opacity: 0; transform: translateX(30px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .version-tag { font-size: 11px; color: var(--text-lo); letter-spacing: .1em; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 960px) {
+      .page { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+      .side { grid-column: 1; grid-row: 1; flex-direction: row; flex-wrap: wrap; gap: 24px 48px; padding: 28px 24px; border-right: none; border-bottom: 1px solid var(--panel-edge); }
+      .side-logo { margin-bottom: 0; flex-basis: 100%; }
+      .side-stat { flex-direction: row; flex-wrap: wrap; gap: 16px 40px; }
+      .side-divider, .side-tagline { display: none; }
+      .center { grid-column: 1; grid-row: 2; }
+      .right { grid-column: 1; grid-row: 3; padding: 16px 24px; align-items: center; }
+    }
+
+    @media (max-width: 520px) {
+      .card { padding: 36px 24px 32px; }
+      .card-title { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="orb"></div>
+
+<div class="page">
+
+  <!-- LEFT PANEL -->
+  <aside class="side">
+    <div class="side-logo">
+      <!-- truck icon -->
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="36" height="36" rx="10" fill="rgba(0,200,255,.12)"/>
+        <path d="M6 22V14a2 2 0 0 1 2-2h13v10H6Z" stroke="#00c8ff" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+        <path d="M21 16h4.5l3.5 4v2h-8V16Z" stroke="#00c8ff" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+        <circle cx="10" cy="23.5" r="2" stroke="#00c8ff" stroke-width="1.5" fill="none"/>
+        <circle cx="25" cy="23.5" r="2" stroke="#00c8ff" stroke-width="1.5" fill="none"/>
+        <line x1="12" y1="23.5" x2="23" y2="23.5" stroke="#00c8ff" stroke-width="1.5" stroke-dasharray="2 2"/>
+      </svg>
+      <span class="side-logo-text">FleetCore OS</span>
+    </div>
+
+    <div class="side-stat">
+      <div class="stat-item">
+        <span class="stat-num">2,840</span>
+        <span class="stat-label">Active Vehicles</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">98.4%</span>
+        <span class="stat-label">Uptime SLA</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">14</span>
+        <span class="stat-label">Active Routes</span>
+      </div>
+    </div>
+
+    <div class="side-divider"></div>
+
+    <p class="side-tagline">
+      <strong>Real-time visibility.</strong><br/>
+      Command your entire fleet<br/>from a single dashboard.
+    </p>
+  </aside>
+
+  <!-- CENTER CARD -->
+  <main class="center">
+    <div class="card">
+
+      <div class="badge">
+        <span class="badge-dot"></span>
+        Secure Portal
+      </div>
+
+      <h1 class="card-title">Fleet Management<br/>System</h1>
+      <p class="card-subtitle">Admin Login — Authorized Personnel Only</p>
+
+      <div class="card-sep"></div>
+
+      <form action="#" method="post">
+
+        <div class="field">
+          <label for="email">Email Address</label>
+          <div class="input-wrap">
+            <input type="email" id="email" name="email" placeholder="admin@fleetcore.io" autocomplete="email" required />
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="3"/>
+              <path d="m2 7 10 6.5L22 7"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <input type="password" id="password" name="password" placeholder="••••••••••••" autocomplete="current-password" required />
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-login">Login to Dashboard</button>
+
+      </form>
+
+      <div class="forgot-wrap">
+        <a href="#">Forgot Password?</a>
+      </div>
+
+      <div class="card-footer">
+        <span class="card-footer-text">© 2025 FleetCore Systems</span>
+        <span class="card-footer-status">
+          <span class="status-dot"></span>
+          All Systems Operational
+        </span>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- RIGHT FILLER -->
+  <div class="right">
+    <span class="version-tag">v4.2.1 — Build 2025</span>
+  </div>
+
+</div>
+
+</body>
+</html>
